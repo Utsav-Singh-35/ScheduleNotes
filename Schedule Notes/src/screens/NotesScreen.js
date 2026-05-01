@@ -6,7 +6,7 @@ import { colors } from '../theme/colors';
 import useStore from '../store/useStore';
 
 export default function NotesScreen() {
-  const { notes, addNote } = useStore();
+  const { notes, addNote, deleteNote } = useStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteContent, setNewNoteContent] = useState('');
@@ -32,7 +32,12 @@ export default function NotesScreen() {
       <ScrollView contentContainerStyle={styles.notesGrid}>
         {notes.map(note => (
           <View key={note.id} style={styles.noteCard}>
-            <Text style={styles.noteTitle} numberOfLines={1}>{note.title}</Text>
+            <View style={styles.noteCardHeader}>
+              <Text style={styles.noteTitle} numberOfLines={1}>{note.title}</Text>
+              <TouchableOpacity onPress={() => deleteNote(note.id)}>
+                <Ionicons name="trash-outline" size={16} color={colors.danger || '#FF4C4C'} />
+              </TouchableOpacity>
+            </View>
             <Text style={styles.noteContent} numberOfLines={3}>{note.content}</Text>
             <Text style={styles.noteDate}>
               {new Date(note.date).toLocaleDateString()}
@@ -87,7 +92,8 @@ const styles = StyleSheet.create({
   addButton: { backgroundColor: colors.primary, width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   notesGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   noteCard: { backgroundColor: colors.card, width: '48%', borderRadius: 16, padding: 15, marginBottom: 15 },
-  noteTitle: { color: colors.text, fontSize: 16, fontWeight: '600', marginBottom: 8 },
+  noteCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  noteTitle: { color: colors.text, fontSize: 16, fontWeight: '600', flex: 1, marginRight: 5 },
   noteContent: { color: colors.textSecondary, fontSize: 14, marginBottom: 10, flex: 1 },
   noteDate: { color: colors.textSecondary, fontSize: 10, marginTop: 'auto' },
   modalContainer: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' },

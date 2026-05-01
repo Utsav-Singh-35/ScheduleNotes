@@ -21,7 +21,14 @@ const useStore = create(
           events: { ...state.events, [date]: [...dateEvents, { id: Date.now().toString(), ...event }] }
         };
       }),
+      deleteEvent: (date, id) => set((state) => {
+        const dateEvents = state.events[date] || [];
+        return {
+          events: { ...state.events, [date]: dateEvents.filter(e => e.id !== id) }
+        };
+      }),
       addNote: (note) => set((state) => ({ notes: [...state.notes, { id: Date.now().toString(), date: new Date().toISOString(), ...note }] })),
+      deleteNote: (id) => set((state) => ({ notes: state.notes.filter(n => n.id !== id) })),
     }),
     {
       name: 'schedule-notes-storage',

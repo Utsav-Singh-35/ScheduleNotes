@@ -6,10 +6,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import useStore from '../store/useStore';
 import * as Notifications from 'expo-notifications';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DatePicker from 'react-native-date-picker';
+import { ScrollView } from 'react-native';
 
 export default function CalendarScreen() {
-  const { events, addEvent } = useStore();
+  const { events, addEvent, deleteEvent } = useStore();
   const [selectedDate, setSelectedDate] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState('');
@@ -17,7 +18,7 @@ export default function CalendarScreen() {
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [selectedTimeObj, setSelectedTimeObj] = useState(new Date());
 
-  const onTimeChange = (event, selectedDate) => {
+  const onTimeChange = (selectedDate) => {
     setDatePickerVisible(false);
     if (selectedDate) {
       setSelectedTimeObj(selectedDate);
@@ -112,16 +113,23 @@ export default function CalendarScreen() {
           )}
         </View>
 
-        {selectedEvents.length === 0 ? (
-          <Text style={styles.emptyText}>No events for this date.</Text>
-        ) : (
-          selectedEvents.map(event => (
-            <View key={event.id} style={styles.eventCard}>
-              <Text style={styles.eventTitle}>{event.title}</Text>
-              <Text style={styles.eventTime}>{event.time}</Text>
-            </View>
-          ))
-        )}
+        <ScrollView style={{flex: 1}} showsVerticalScrollIndicator={false}>
+          {selectedEvents.length === 0 ? (
+            <Text style={styles.emptyText}>No events for this date.</Text>
+          ) : (
+            selectedEvents.map(event => (
+              <View key={event.id} style={styles.eventCard}>
+                <View style={{flex: 1}}>
+                  <Text style={styles.eventTitle}>{event.title}</Text>
+                  <Text style={styles.eventTime}>{event.time}</Text>
+                </View>
+                <TouchableOpacity onPress={() => deleteEvent(selectedDate, event.id)} style={{padding: 5}}>
+                  <Ionicons name="trash-outline" size={20} color={colors.danger || '#FF4C4C'} />
+                </TouchableOpacity>
+              </View>
+            ))
+          )}
+        </ScrollView>
       </View>
 
       {/* Add Event Modal */}
@@ -147,15 +155,19 @@ export default function CalendarScreen() {
               </Text>
             </TouchableOpacity>
 
-            {datePickerVisible && (
-              <DateTimePicker
-                value={selectedTimeObj}
-                mode="time"
-                is24Hour={false}
-                display="default"
-                onChange={onTimeChange}
-              />
-            )}
+            <DatePicker
+              modal
+              open={datePickerVisible}
+              date={selectedTimeObj}
+              mode="time"
+              theme="dark"
+              onConfirm={(date) => {
+                onTimeChange(date);
+              }}
+              onCancel={() => {
+                setDatePickerVisible(false);
+              }}
+            />
 
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
@@ -217,6 +229,8 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   eventCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.card,
     padding: 15,
     borderRadius: 16,
