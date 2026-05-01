@@ -35,13 +35,17 @@ export default function CalendarScreen() {
       // Attempt to schedule a local notification if time is provided
       // For a real app, we'd parse the date & time properly.
       // Here we just schedule an example notification 5 seconds from now.
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "Upcoming Event: " + newEventTitle,
-          body: "It's time for your scheduled event.",
-        },
-        trigger: { seconds: 5 },
-      });
+      try {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "Upcoming Event: " + newEventTitle,
+            body: "It's time for your scheduled event.",
+          },
+          trigger: { seconds: 5 },
+        });
+      } catch (e) {
+        console.warn("Notifications might not be fully supported in this environment:", e);
+      }
 
       setModalVisible(false);
       setNewEventTitle('');

@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import DashboardScreen from '../screens/DashboardScreen';
 import CalendarScreen from '../screens/CalendarScreen';
@@ -12,6 +13,8 @@ import TodoScreen from '../screens/TodoScreen';
 const Tab = createBottomTabNavigator();
 
 export default function AppNavigator() {
+  const insets = useSafeAreaInsets();
+
   return (
     <NavigationContainer theme={{ colors: { background: colors.background } }}>
       <Tab.Navigator
@@ -22,7 +25,8 @@ export default function AppNavigator() {
             backgroundColor: colors.card,
             borderTopWidth: 0,
             elevation: 0,
-            height: 60,
+            height: 60 + insets.bottom,
+            paddingBottom: insets.bottom,
             paddingTop: 10,
           },
           tabBarIcon: ({ focused, size }) => {
