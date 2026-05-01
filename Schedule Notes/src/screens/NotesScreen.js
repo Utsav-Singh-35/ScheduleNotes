@@ -8,6 +8,8 @@ import useStore from '../store/useStore';
 export default function NotesScreen() {
   const { notes, addNote, deleteNote } = useStore();
   const [modalVisible, setModalVisible] = useState(false);
+  const [viewModalVisible, setViewModalVisible] = useState(false);
+  const [selectedNote, setSelectedNote] = useState(null);
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteContent, setNewNoteContent] = useState('');
 
@@ -31,7 +33,14 @@ export default function NotesScreen() {
 
       <ScrollView contentContainerStyle={styles.notesGrid}>
         {notes.map(note => (
-          <View key={note.id} style={styles.noteCard}>
+          <TouchableOpacity 
+            key={note.id} 
+            style={styles.noteCard}
+            onPress={() => {
+              setSelectedNote(note);
+              setViewModalVisible(true);
+            }}
+          >
             <View style={styles.noteCardHeader}>
               <Text style={styles.noteTitle} numberOfLines={1}>{note.title}</Text>
               <TouchableOpacity onPress={() => deleteNote(note.id)}>
@@ -42,7 +51,7 @@ export default function NotesScreen() {
             <Text style={styles.noteDate}>
               {new Date(note.date).toLocaleDateString()}
             </Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
 
@@ -81,6 +90,26 @@ export default function NotesScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* View Note Modal */}
+      <Modal visible={viewModalVisible} animationType="fade" transparent>
+        <View style={styles.viewModalContainer}>
+          <View style={styles.viewModalContent}>
+            <View style={styles.viewModalHeader}>
+              <Text style={styles.viewModalTitle}>{selectedNote?.title}</Text>
+              <TouchableOpacity onPress={() => setViewModalVisible(false)}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.viewModalDate}>
+              {selectedNote && new Date(selectedNote.date).toLocaleDateString()}
+            </Text>
+            <ScrollView style={styles.viewModalBody}>
+              <Text style={styles.viewModalText}>{selectedNote?.content}</Text>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -106,4 +135,11 @@ const styles = StyleSheet.create({
   cancelBtnText: { color: colors.textSecondary, fontSize: 16 },
   saveBtn: { backgroundColor: colors.primary, padding: 15, borderRadius: 12, marginLeft: 10 },
   saveBtnText: { color: '#000', fontSize: 16, fontWeight: 'bold' },
+  viewModalContainer: { flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.7)', padding: 20 },
+  viewModalContent: { backgroundColor: colors.card, borderRadius: 24, padding: 24, maxHeight: '80%' },
+  viewModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 },
+  viewModalTitle: { color: colors.text, fontSize: 24, fontWeight: 'bold', flex: 1, marginRight: 10 },
+  viewModalDate: { color: colors.textSecondary, fontSize: 12, marginBottom: 20 },
+  viewModalBody: { marginTop: 10 },
+  viewModalText: { color: colors.text, fontSize: 16, lineHeight: 24 },
 });

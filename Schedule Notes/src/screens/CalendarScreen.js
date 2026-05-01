@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import useStore from '../store/useStore';
 import * as Notifications from 'expo-notifications';
-import DatePicker from 'react-native-date-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { ScrollView } from 'react-native';
 
 export default function CalendarScreen() {
@@ -18,9 +18,13 @@ export default function CalendarScreen() {
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [selectedTimeObj, setSelectedTimeObj] = useState(new Date());
 
-  const onTimeChange = (selectedDate) => {
-    setDatePickerVisible(false);
-    if (selectedDate) {
+  const onTimeChange = (event, selectedDate) => {
+    // on Android, event.type is 'set' or 'dismissed'
+    if (Platform.OS === 'android') {
+      setDatePickerVisible(false);
+    }
+    
+    if (event.type === 'set' && selectedDate) {
       setSelectedTimeObj(selectedDate);
       const hours = selectedDate.getHours();
       const minutes = selectedDate.getMinutes();
@@ -28,6 +32,14 @@ export default function CalendarScreen() {
       const formattedHours = hours % 12 || 12;
       const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
       setNewEventTime(`${formattedHours}:${formattedMinutes} ${ampm}`);
+    } else if (Platform.OS === 'ios' && selectedDate) {
+       setSelectedTimeObj(selectedDate);
+       const hours = selectedDate.getHours();
+       const minutes = selectedDate.getMinutes();
+       const ampm = hours >= 12 ? 'PM' : 'AM';
+       const formattedHours = hours % 12 || 12;
+       const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+       setNewEventTime(`${formattedHours}:${formattedMinutes} ${ampm}`);
     }
   };
 
@@ -155,19 +167,16 @@ export default function CalendarScreen() {
               </Text>
             </TouchableOpacity>
 
-            <DatePicker
-              modal
-              open={datePickerVisible}
-              date={selectedTimeObj}
-              mode="time"
-              theme="dark"
-              onConfirm={(date) => {
-                onTimeChange(date);
-              }}
-              onCancel={() => {
-                setDatePickerVisible(false);
-              }}
-            />
+            {datePickerVisible && (
+              <DateTimePicker
+                value={selectedTimeObj}
+                mode="time"
+                is24Hour={false}
+                display="default"
+                themeVariant="dark"
+                onChange={onTimeChange}
+              />
+            )}
 
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
