@@ -12,6 +12,9 @@ const useStore = create(
       toggleTask: (id) => set((state) => ({
         tasks: state.tasks.map((task) => task.id === id ? { ...task, completed: !task.completed } : task)
       })),
+      deleteTask: (id) => set((state) => ({
+        tasks: state.tasks.filter((task) => task.id !== id)
+      })),
       addEvent: (date, event) => set((state) => {
         const dateEvents = state.events[date] || [];
         return {

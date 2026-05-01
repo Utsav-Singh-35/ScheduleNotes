@@ -6,7 +6,7 @@ import { colors } from '../theme/colors';
 import useStore from '../store/useStore';
 
 export default function TodoScreen() {
-  const { tasks, addTask, toggleTask } = useStore();
+  const { tasks, addTask, toggleTask, deleteTask } = useStore();
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
   const handleAddTask = () => {
@@ -17,14 +17,23 @@ export default function TodoScreen() {
   };
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.taskCard} onPress={() => toggleTask(item.id)}>
-      <View style={[styles.checkbox, item.completed && styles.checkboxActive]}>
-        {item.completed && <Ionicons name="checkmark" size={16} color="#000" />}
-      </View>
-      <Text style={[styles.taskTitle, item.completed && styles.taskTitleDone]}>
-        {item.title}
-      </Text>
-    </TouchableOpacity>
+    <View style={styles.taskCard}>
+      <TouchableOpacity 
+        style={styles.taskCardTouch} 
+        onPress={() => toggleTask(item.id)}
+        activeOpacity={0.7}
+      >
+        <View style={[styles.checkbox, item.completed && styles.checkboxActive]}>
+          {item.completed && <Ionicons name="checkmark" size={16} color="#000" />}
+        </View>
+        <Text style={[styles.taskTitle, item.completed && styles.taskTitleDone]}>
+          {item.title}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.deleteBtn} onPress={() => deleteTask(item.id)}>
+        <Ionicons name="trash-outline" size={20} color={colors.danger} />
+      </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -41,7 +50,7 @@ export default function TodoScreen() {
           onSubmitEditing={handleAddTask}
         />
         <TouchableOpacity style={styles.addBtn} onPress={handleAddTask}>
-          <Ionicons name="add" size={24} color="#000" />
+          <Ionicons name="add" size={28} color="#000" />
         </TouchableOpacity>
       </View>
 
@@ -51,6 +60,7 @@ export default function TodoScreen() {
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={<Text style={styles.emptyText}>No tasks yet. Add one above!</Text>}
+        showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
   );
@@ -58,15 +68,17 @@ export default function TodoScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, padding: 20 },
-  headerTitle: { color: colors.text, fontSize: 28, fontWeight: 'bold', marginBottom: 20 },
-  inputContainer: { flexDirection: 'row', marginBottom: 20 },
-  input: { flex: 1, backgroundColor: colors.card, color: colors.text, padding: 15, borderRadius: 12, fontSize: 16, marginRight: 10 },
-  addBtn: { backgroundColor: colors.primary, width: 54, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  listContent: { paddingBottom: 20 },
-  taskCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, padding: 15, borderRadius: 12, marginBottom: 10 },
-  checkbox: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: colors.textSecondary, marginRight: 15, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { color: colors.text, fontSize: 32, fontWeight: 'bold', marginBottom: 20 },
+  inputContainer: { flexDirection: 'row', marginBottom: 25 },
+  input: { flex: 1, backgroundColor: colors.card, color: colors.text, paddingHorizontal: 20, paddingVertical: 18, borderRadius: 16, fontSize: 16, marginRight: 12 },
+  addBtn: { backgroundColor: colors.primary, width: 60, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  listContent: { paddingBottom: 30 },
+  taskCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, padding: 10, paddingLeft: 15, borderRadius: 16, marginBottom: 12 },
+  taskCardTouch: { flexDirection: 'row', flex: 1, alignItems: 'center', paddingVertical: 8 },
+  checkbox: { width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: colors.textSecondary, marginRight: 15, justifyContent: 'center', alignItems: 'center' },
   checkboxActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  taskTitle: { color: colors.text, fontSize: 16, flex: 1 },
+  taskTitle: { color: colors.text, fontSize: 17, flex: 1 },
   taskTitleDone: { color: colors.textSecondary, textDecorationLine: 'line-through' },
-  emptyText: { color: colors.textSecondary, textAlign: 'center', marginTop: 40, fontStyle: 'italic' },
+  deleteBtn: { padding: 10 },
+  emptyText: { color: colors.textSecondary, textAlign: 'center', marginTop: 40, fontStyle: 'italic', fontSize: 16 },
 });

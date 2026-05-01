@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import useStore from '../store/useStore';
 import * as Notifications from 'expo-notifications';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function CalendarScreen() {
   const { events, addEvent } = useStore();
@@ -13,6 +14,21 @@ export default function CalendarScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventTime, setNewEventTime] = useState('');
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const [selectedTimeObj, setSelectedTimeObj] = useState(new Date());
+
+  const onTimeChange = (event, selectedDate) => {
+    setDatePickerVisible(false);
+    if (selectedDate) {
+      setSelectedTimeObj(selectedDate);
+      const hours = selectedDate.getHours();
+      const minutes = selectedDate.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = hours % 12 || 12;
+      const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+      setNewEventTime(`${formattedHours}:${formattedMinutes} ${ampm}`);
+    }
+  };
 
   // Transform events for the calendar
   const markedDates = Object.keys(events).reduce((acc, date) => {
@@ -29,12 +45,9 @@ export default function CalendarScreen() {
   }
 
   const handleAddEvent = async () => {
-    if (newEventTitle && selectedDate) {
+    if (newEventTitle && selectedDate && newEventTime) {
       addEvent(selectedDate, { title: newEventTitle, time: newEventTime });
       
-      // Attempt to schedule a local notification if time is provided
-      // For a real app, we'd parse the date & time properly.
-      // Here we just schedule an example notification 5 seconds from now.
       try {
         await Notifications.scheduleNotificationAsync({
           content: {
@@ -125,13 +138,24 @@ export default function CalendarScreen() {
               onChangeText={setNewEventTitle}
             />
             
-            <TextInput
-              style={styles.input}
-              placeholder="Time (e.g. 10:00 AM)"
-              placeholderTextColor={colors.textSecondary}
-              value={newEventTime}
-              onChangeText={setNewEventTime}
-            />
+            <TouchableOpacity 
+              style={styles.timePickerButton} 
+              onPress={() => setDatePickerVisible(true)}
+            >
+              <Text style={[styles.timePickerText, !newEventTime && { color: colors.textSecondary }]}>
+                {newEventTime || "Select Time"}
+              </Text>
+            </TouchableOpacity>
+
+            {datePickerVisible && (
+              <DateTimePicker
+                value={selectedTimeObj}
+                mode="time"
+                is24Hour={false}
+                display="default"
+                onChange={onTimeChange}
+              />
+            )}
 
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
@@ -233,6 +257,16 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 12,
     marginBottom: 15,
+    fontSize: 16,
+  },
+  timePickerButton: {
+    backgroundColor: colors.background,
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 15,
+  },
+  timePickerText: {
+    color: colors.text,
     fontSize: 16,
   },
   modalButtons: {
