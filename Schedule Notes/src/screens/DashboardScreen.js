@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
@@ -19,7 +19,7 @@ export default function DashboardScreen() {
         
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.avatarPlaceholder} />
+          <Image source={require('../../assets/logo.png')} style={styles.avatarPlaceholder} />
           <Ionicons name="notifications-outline" size={24} color={colors.text} />
         </View>
 
