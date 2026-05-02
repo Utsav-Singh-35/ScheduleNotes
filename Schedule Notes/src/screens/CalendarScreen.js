@@ -6,7 +6,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import useStore from '../store/useStore';
 import * as Notifications from 'expo-notifications';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { ScrollView } from 'react-native';
 
 export default function CalendarScreen() {
@@ -14,34 +13,15 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState('');
-  const [newEventTime, setNewEventTime] = useState('');
-  const [datePickerVisible, setDatePickerVisible] = useState(false);
-  const [selectedTimeObj, setSelectedTimeObj] = useState(new Date());
+  const [selectedHour, setSelectedHour] = useState(10);
+  const [selectedMinute, setSelectedMinute] = useState(0);
+  const [isAM, setIsAM] = useState(true);
 
-  const onTimeChange = (event, selectedDate) => {
-    // on Android, event.type is 'set' or 'dismissed'
-    if (Platform.OS === 'android') {
-      setDatePickerVisible(false);
-    }
-    
-    if (event.type === 'set' && selectedDate) {
-      setSelectedTimeObj(selectedDate);
-      const hours = selectedDate.getHours();
-      const minutes = selectedDate.getMinutes();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      const formattedHours = hours % 12 || 12;
-      const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
-      setNewEventTime(`${formattedHours}:${formattedMinutes} ${ampm}`);
-    } else if (Platform.OS === 'ios' && selectedDate) {
-       setSelectedTimeObj(selectedDate);
-       const hours = selectedDate.getHours();
-       const minutes = selectedDate.getMinutes();
-       const ampm = hours >= 12 ? 'PM' : 'AM';
-       const formattedHours = hours % 12 || 12;
-       const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
-       setNewEventTime(`${formattedHours}:${formattedMinutes} ${ampm}`);
-    }
-  };
+  const incrementHour = () => setSelectedHour(prev => prev === 12 ? 1 : prev + 1);
+  const decrementHour = () => setSelectedHour(prev => prev === 1 ? 12 : prev - 1);
+  const incrementMinute = () => setSelectedMinute(prev => prev === 55 ? 0 : prev + 5);
+  const decrementMinute = () => setSelectedMinute(prev => prev === 0 ? 55 : prev - 5);
+  const toggleAMPM = () => setIsAM(!isAM);
 
   // Transform events for the calendar
   const markedDates = Object.keys(events).reduce((acc, date) => {
@@ -58,8 +38,11 @@ export default function CalendarScreen() {
   }
 
   const handleAddEvent = async () => {
-    if (newEventTitle && selectedDate && newEventTime) {
-      addEvent(selectedDate, { title: newEventTitle, time: newEventTime });
+    const formattedMinute = selectedMinute < 10 ? `0${selectedMinute}` : selectedMinute;
+    const constructedTime = `${selectedHour}:${formattedMinute} ${isAM ? 'AM' : 'PM'}`;
+
+    if (newEventTitle && selectedDate) {
+      addEvent(selectedDate, { title: newEventTitle, time: constructedTime });
       
       try {
         await Notifications.scheduleNotificationAsync({
@@ -75,7 +58,9 @@ export default function CalendarScreen() {
 
       setModalVisible(false);
       setNewEventTitle('');
-      setNewEventTime('');
+      setSelectedHour(10);
+      setSelectedMinute(0);
+      setIsAM(true);
     }
   };
 
@@ -158,25 +143,24 @@ export default function CalendarScreen() {
               onChangeText={setNewEventTitle}
             />
             
-            <TouchableOpacity 
-              style={styles.timePickerButton} 
-              onPress={() => setDatePickerVisible(true)}
-            >
-              <Text style={[styles.timePickerText, !newEventTime && { color: colors.textSecondary }]}>
-                {newEventTime || "Select Time"}
-              </Text>
-            </TouchableOpacity>
-
-            {datePickerVisible && (
-              <DateTimePicker
-                value={selectedTimeObj}
-                mode="time"
-                is24Hour={false}
-                display="default"
-                themeVariant="dark"
-                onChange={onTimeChange}
-              />
-            )}
+            <View style={styles.customTimePicker}>
+              <View style={styles.timeColumn}>
+                <TouchableOpacity onPress={incrementHour} style={styles.timeArrow}><Ionicons name="chevron-up" size={24} color={colors.text}/></TouchableOpacity>
+                <Text style={styles.timeText}>{selectedHour}</Text>
+                <TouchableOpacity onPress={decrementHour} style={styles.timeArrow}><Ionicons name="chevron-down" size={24} color={colors.text}/></TouchableOpacity>
+              </View>
+              <Text style={styles.timeColon}>:</Text>
+              <View style={styles.timeColumn}>
+                <TouchableOpacity onPress={incrementMinute} style={styles.timeArrow}><Ionicons name="chevron-up" size={24} color={colors.text}/></TouchableOpacity>
+                <Text style={styles.timeText}>{selectedMinute < 10 ? `0${selectedMinute}` : selectedMinute}</Text>
+                <TouchableOpacity onPress={decrementMinute} style={styles.timeArrow}><Ionicons name="chevron-down" size={24} color={colors.text}/></TouchableOpacity>
+              </View>
+              <View style={[styles.timeColumn, {marginLeft: 20}]}>
+                <TouchableOpacity onPress={toggleAMPM} style={styles.timeArrow}><Ionicons name="chevron-up" size={24} color={colors.text}/></TouchableOpacity>
+                <Text style={styles.timeText}>{isAM ? 'AM' : 'PM'}</Text>
+                <TouchableOpacity onPress={toggleAMPM} style={styles.timeArrow}><Ionicons name="chevron-down" size={24} color={colors.text}/></TouchableOpacity>
+              </View>
+            </View>
 
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
@@ -282,15 +266,33 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     fontSize: 16,
   },
-  timePickerButton: {
+  customTimePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.background,
-    padding: 15,
     borderRadius: 12,
+    paddingVertical: 15,
     marginBottom: 15,
   },
-  timePickerText: {
+  timeColumn: {
+    alignItems: 'center',
+    width: 50,
+  },
+  timeArrow: {
+    padding: 5,
+  },
+  timeText: {
     color: colors.text,
-    fontSize: 16,
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginVertical: 10,
+  },
+  timeColon: {
+    color: colors.text,
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginHorizontal: 10,
   },
   modalButtons: {
     flexDirection: 'row',
