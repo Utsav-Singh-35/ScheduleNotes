@@ -100,7 +100,7 @@ export default function DashboardScreen() {
                   </View>
                   <Text style={styles.widgetTitle}>Activity</Text>
                 </View>
-                <Text style={styles.mainStat}>{totalTasks * 3}<Text style={styles.subStat}>/{totalDots=60}</Text></Text>
+                <Text style={styles.mainStat}>{totalTasks * 3}<Text style={styles.subStat}>/60</Text></Text>
                 {renderDotGrid()}
               </View>
 
