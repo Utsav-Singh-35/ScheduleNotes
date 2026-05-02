@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
@@ -15,6 +15,7 @@ export default function DashboardScreen() {
   
   const todayDate = new Date().toISOString().split('T')[0];
   const todaysEvents = events[todayDate] || [];
+  const [notificationModalVisible, setNotificationModalVisible] = useState(false);
 
   const dynamicDates = useMemo(() => {
     const today = new Date();
@@ -68,10 +69,10 @@ export default function DashboardScreen() {
               <Image source={require('../../assets/logo.png')} style={styles.avatarPlaceholder} />
             </View>
             <View style={styles.headerRight}>
-              <View style={styles.notificationBadge}>
+              <TouchableOpacity onPress={() => setNotificationModalVisible(true)} style={styles.notificationBadge}>
                 <Ionicons name="notifications-outline" size={22} color={colors.text} />
-                <View style={styles.notificationDot} />
-              </View>
+                {todaysEvents.length > 0 && <View style={styles.notificationDot} />}
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -226,6 +227,37 @@ export default function DashboardScreen() {
 
         </ScrollView>
       </SafeAreaView>
+
+      {/* Notifications Modal */}
+      <Modal visible={notificationModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Notifications</Text>
+              <TouchableOpacity onPress={() => setNotificationModalVisible(false)}>
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{maxHeight: 400}}>
+              {todaysEvents.length === 0 ? (
+                <Text style={styles.emptyText}>No notifications for today.</Text>
+              ) : (
+                todaysEvents.map((event, idx) => (
+                  <View key={idx} style={styles.notificationItem}>
+                    <View style={styles.iconBadge}>
+                      <Ionicons name="calendar" size={16} color={colors.primary} />
+                    </View>
+                    <View style={{flex: 1}}>
+                      <Text style={styles.notificationTitle}>{event.title} is coming up today.</Text>
+                      <Text style={styles.notificationTime}>{event.time}</Text>
+                    </View>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 }
@@ -272,4 +304,11 @@ const styles = StyleSheet.create({
   eventContent: { flex: 1, paddingLeft: 5 },
   eventName: { color: colors.text, fontSize: 16, fontWeight: '600', marginBottom: 4 },
   eventTime: { color: colors.textSecondary, fontSize: 13, fontWeight: '500' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: 20 },
+  modalContent: { backgroundColor: 'rgba(20, 24, 21, 0.95)', borderRadius: 28, padding: 24, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.1)', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 10 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { color: colors.text, fontSize: 24, fontWeight: 'bold' },
+  notificationItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', padding: 15, borderRadius: 16, marginBottom: 10 },
+  notificationTitle: { color: colors.text, fontSize: 14, fontWeight: '500', marginBottom: 4 },
+  notificationTime: { color: colors.secondary, fontSize: 12, fontWeight: 'bold' },
 });

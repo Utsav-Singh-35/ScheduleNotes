@@ -44,16 +44,28 @@ export default function CalendarScreen() {
     if (newEventTitle && selectedDate) {
       addEvent(selectedDate, { title: newEventTitle, time: constructedTime });
       
-      try {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "Upcoming Event: " + newEventTitle,
-            body: "It's time for your scheduled event.",
-          },
-          trigger: { seconds: 5 },
-        });
-      } catch (e) {
-        console.warn("Notifications might not be fully supported in this environment:", e);
+      // Parse the exact time
+      const [year, month, day] = selectedDate.split('-');
+      const targetDate = new Date(year, month - 1, day);
+      let hour24 = selectedHour;
+      if (isAM && hour24 === 12) hour24 = 0;
+      if (!isAM && hour24 !== 12) hour24 += 12;
+      targetDate.setHours(hour24);
+      targetDate.setMinutes(selectedMinute);
+      targetDate.setSeconds(0);
+
+      if (targetDate > new Date()) {
+        try {
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: "Upcoming Event: " + newEventTitle,
+              body: "It's time for your scheduled event at " + constructedTime,
+            },
+            trigger: { date: targetDate },
+          });
+        } catch (e) {
+          console.warn("Notifications issue:", e);
+        }
       }
 
       setModalVisible(false);
