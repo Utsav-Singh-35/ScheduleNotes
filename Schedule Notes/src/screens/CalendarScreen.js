@@ -44,18 +44,7 @@ export default function CalendarScreen() {
     if (newEventTitle && selectedDate) {
       addEvent(selectedDate, { title: newEventTitle, time: constructedTime });
       
-      // Send immediate confirmation
-      try {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "Event Scheduled",
-            body: `"${newEventTitle}" is set for ${selectedDate} at ${constructedTime}.`,
-          },
-          trigger: null, // trigger immediately
-        });
-      } catch (e) {
-        console.warn(e);
-      }
+
 
       // Parse the exact time for the actual future alarm
       const [year, month, day] = selectedDate.split('-');

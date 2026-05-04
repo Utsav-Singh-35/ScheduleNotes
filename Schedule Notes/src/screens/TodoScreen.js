@@ -10,22 +10,9 @@ export default function TodoScreen() {
   const { tasks, addTask, toggleTask, deleteTask } = useStore();
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
-  const handleAddTask = async () => {
+  const handleAddTask = () => {
     if (newTaskTitle.trim()) {
       addTask({ title: newTaskTitle });
-      
-      try {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "Task Added",
-            body: `"${newTaskTitle}" was added to your To-Do list.`,
-          },
-          trigger: null, // trigger immediately
-        });
-      } catch (e) {
-        console.warn(e);
-      }
-
       setNewTaskTitle('');
     }
   };
